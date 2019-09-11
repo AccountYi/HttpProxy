@@ -1,0 +1,93 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 4ed2d6dfa723c73860f23470e2aa873323997a5c68e6ca9c0e8952d4bf8186a6
+
+name:           proxy
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/proxy#readme>
+homepage:       https://github.com/githubuser/proxy#readme
+bug-reports:    https://github.com/githubuser/proxy/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2019 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/proxy
+
+library
+  exposed-modules:
+      Client
+      Lib
+  other-modules:
+      Paths_proxy
+  hs-source-dirs:
+      src
+  default-extensions: NoImplicitPrelude OverloadedStrings
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , classy-prelude
+    , clock ==0.7.2
+    , dns >=4.0.0
+    , exceptions >=0.10.2
+    , fixed-timestep ==0.2.0.0
+    , iproute >=1.7.7
+    , network
+    , unix >=0.3.7.3
+  default-language: Haskell2010
+
+executable proxy-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_proxy
+  hs-source-dirs:
+      app
+  default-extensions: NoImplicitPrelude OverloadedStrings
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , classy-prelude
+    , clock ==0.7.2
+    , dns >=4.0.0
+    , exceptions >=0.10.2
+    , fixed-timestep ==0.2.0.0
+    , iproute >=1.7.7
+    , network
+    , proxy
+    , unix >=0.3.7.3
+  default-language: Haskell2010
+
+test-suite proxy-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_proxy
+  hs-source-dirs:
+      test
+  default-extensions: NoImplicitPrelude OverloadedStrings
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , classy-prelude
+    , clock ==0.7.2
+    , dns >=4.0.0
+    , exceptions >=0.10.2
+    , fixed-timestep ==0.2.0.0
+    , iproute >=1.7.7
+    , network
+    , proxy
+    , unix >=0.3.7.3
+  default-language: Haskell2010
