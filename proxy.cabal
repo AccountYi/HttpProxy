@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4ed2d6dfa723c73860f23470e2aa873323997a5c68e6ca9c0e8952d4bf8186a6
+-- hash: c39fe05f9db96393450d0235dcbf2a3af3e0165c180d7a32d064f058799b1211
 
 name:           proxy
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
   default-extensions: NoImplicitPrelude OverloadedStrings
   build-depends:
       base >=4.7 && <5
+    , base-compat >=0.10.5
     , bytestring
     , classy-prelude
     , clock ==0.7.2
@@ -57,6 +58,7 @@ executable proxy-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , base-compat >=0.10.5
     , bytestring
     , classy-prelude
     , clock ==0.7.2
@@ -80,6 +82,7 @@ test-suite proxy-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , base-compat >=0.10.5
     , bytestring
     , classy-prelude
     , clock ==0.7.2

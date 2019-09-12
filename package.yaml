@@ -28,6 +28,7 @@ dependencies:
 - dns >= 4.0.0
 - exceptions >= 0.10.2
 - iproute >= 1.7.7
+- base-compat >= 0.10.5
 
 - fixed-timestep == 0.2.0.0
 - clock == 0.7.2

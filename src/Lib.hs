@@ -25,7 +25,8 @@ import System.Clock
 import Control.Monad.Catch
 import Network.DNS
 import Data.IP
-import qualified Data.List as List(head,(!!))
+import qualified Prelude.Compat as Lc(read)
+import qualified Data.List as List(head,(!!),last)
 import qualified Data.ByteString.Char8 as Dbc
 
 runProxy :: String  -> IO ()
@@ -69,30 +70,29 @@ getSockAddrFamily (SockAddrInet6 _ _ _ _) = AF_INET6
 
 
   
-forwardData :: Socket -> Socket  -> Int -> SockAddr ->IO ()
+forwardDataToServer :: Socket -> Socket  -> ByteString -> SockAddr ->IO ()
 
-forwardData srcSock destSock1  a addrs = do
-  traceM("sssssssssssssssssssssssssssssssssssssssssssss")
-  msg <- Nsb.recv srcSock 32768 --从套接字接收数据。套接字必须处于连接状态
-  let msgs = lines $ (unpack . decodeUtf8) msg
-  
-  case a of 
-    1 ->  case addrs of
-              SockAddrInet portNumber hostAddress ->
-                traceM("sssssssssssssssssssssssssssssssssssssssssssss" ++ show msgs)
-                    --traceM((show "port11:") ++ (show portNumber) ++ (show "==========host11:") ++ (show hostAddress) ++ (show $ "***one:    " ++ msg))
-    2 ->  case addrs of
-              SockAddrInet portNumber hostAddress ->
-                    traceM((show "port22:") ++ (show portNumber) ++ (show "==========host22:") ++ (show hostAddress) ++ (show $ "***tow:    " ++ msg)   )
+forwardDataToServer clientSock serverSock  msg serverAddr = do
 
-
+  --traceM(show msg)
   unless (S.null msg) $ do
-    
-    Nsb.sendAllTo destSock1 msg addrs -- 将数据发送到服务端套接字
+    Nsb.sendAllTo serverSock msg serverAddr -- 将数据发送到服务端套接字
+    msg1 <- Nsb.recv clientSock 32768 --从套接字接收数据。套接字必须处于连接状态
+  
     --S.hPut destSock2 msg -- 将 msg 输出到指定的Handle
-    forwardData srcSock destSock1  a addrs
+    forwardDataToServer clientSock serverSock  msg1 serverAddr
 
+  
+forwardDataToClient :: Socket -> Socket  -> SockAddr ->IO ()
 
+forwardDataToClient serverSock clientSock  clientaddrs = do
+  msg <- Nsb.recv serverSock 32768 --从套接字接收数据。套接字必须处于连接状态
+  --traceM(show msg)
+  unless (S.null msg) $ do
+    Nsb.sendAllTo clientSock msg clientaddrs -- 将数据发送到客户端套接字
+    
+    --S.hPut destSock2 msg -- 将 msg 输出到指定的Handle
+    forwardDataToClient serverSock clientSock clientaddrs
 
 
 getSockAddr :: (MonadIO m, MonadThrow m) => ByteString -> m SockAddr
@@ -119,9 +119,9 @@ getSockAddr msg  = do
                 Right ip -> return $ List.head ip
 
                 Left err  ->  throwString $ "非法域名： " <> show err
-      
-              
-      return $ SockAddrInet 80 $ toHostAddress ip
+      let sockAddr = SockAddrInet 80 $ toHostAddress ip      
+      traceM("访问域名: " ++ ((unpack . decodeUtf8) domainName) ++ " 端口号： 80   ======  " ++  (show sockAddr))                
+      return $ sockAddr
       
     "https" -> do
       
@@ -141,41 +141,55 @@ getSockAddr msg  = do
 
                 Left err  ->  throwString $ "非法域名： " <> show err
       
-                
-      return $ SockAddrInet 443 $ toHostAddress ip
+      let sockAddr = SockAddrInet 443 $ toHostAddress ip
+      traceM("访问域名: " ++ ((unpack . decodeUtf8) domainName) ++ " 端口号： 443   ======   " ++  (show sockAddr))          
+      return $ sockAddr
 
-    _ ->    
+    _ -> do
+
+      let msgs = Dbc.split ':' httpUrl
       
-      return(SockAddrInet 443 $ tupleToHostAddress (118,89,204,200)) 
+      rs <- liftIO $ makeResolvSeed defaultResolvConf
+      domainIP <- liftIO $  withResolver rs $ \resolver -> lookupA resolver $ List.head msgs
+      ip <- case domainIP of
+                Right ip -> 
+                  trace(show ip)
+                  return $ List.head ip
 
-
+                Left err  ->  throwString $ "非法域名： " <> show err
+ 
+      let port = (unpack . decodeUtf8) $ List.last msgs
+      let sockAddr = SockAddrInet (Lc.read port :: PortNumber) $ toHostAddress ip 
+      --traceM("访问域名: " ++ ((unpack . decodeUtf8) (List.head msgs)) ++ " 端口号： " ++ ((unpack . decodeUtf8) (List.last msgs)) ++ "  ======  " ++  (show sockAddr))
+      
+      return(sockAddr)
 
 
 proxySocket :: Socket ->  SockAddr -> IO()
 
-proxySocket clientSock  addrs = do
+proxySocket clientSock  clientAddrs = do
 
   msg <- Nsb.recv clientSock 4096 --从客户端的套接字接收数据。套接字必须处于连接状态
-
   --let msgs = Dbc.lines.Dbc.unwords $ Dbc.split '\r' msg
-  let msgs = Dbc.lines msg
+  traceM(show msg)
+  unless (S.null msg) $ do
+        --traceM(show msg)
+        
+        let msgs = Dbc.lines msg
 
-  serverAddr <- getSockAddr $ List.head msgs
+        serverAddr <- getSockAddr $ List.head msgs
 
-  traceM(show "===================================================================================")
-  traceM(show serverAddr)
+        let serverAI = defaultHints { addrSocketType = Stream, addrAddress = serverAddr, addrFamily = getSockAddrFamily serverAddr  }
 
-  let serverAI = defaultHints { addrSocketType = Stream, addrAddress = serverAddr, addrFamily = getSockAddrFamily serverAddr  }
+        serverSock <- socket (addrFamily serverAI) (addrSocketType serverAI) (addrProtocol serverAI)
 
-  serverSock <- socket (addrFamily serverAI) (addrSocketType serverAI) (addrProtocol serverAI)
+        connect serverSock serverAddr
 
-  connect serverSock serverAddr
+        forkFinally (forwardDataToServer clientSock serverSock  msg serverAddr) (\_ -> close clientSock >> close serverSock)
 
-  forkFinally (forwardData clientSock serverSock  1 serverAddr) (\_ -> close clientSock >> close serverSock)
-
-  forkFinally (forwardData serverSock clientSock  2 addrs) (\_ -> close clientSock >> close serverSock)
+        forkFinally (forwardDataToClient serverSock clientSock clientAddrs) (\_ -> close clientSock >> close serverSock)
   
-  return ()
+        return ()
 
 loopPack :: Clock -> IO ()
 loopPack clo = do
