@@ -10,17 +10,6 @@ import qualified Network.Socket.ByteString as Nsb
 import Network.Socket.Internal 
 import Control.Monad
 import Control.Concurrent
-import GHC.IO.Handle
-import System.Posix.IO
-import System.Posix.Types
-import System.Environment
-
-import Network.Socket.ByteString.Lazy
-
-
-import Time.Repeatedly
-import Control.Concurrent
-import System.Clock
 
 import Control.Monad.Catch
 import Network.DNS
@@ -29,9 +18,10 @@ import qualified Prelude.Compat as Lc(read)
 import qualified Data.List as List(head,(!!),last)
 import qualified Data.ByteString.Char8 as Dbc
 
-runProxy :: String  -> IO ()
 
-runProxy port   = do
+runProxy1 :: String  -> IO ()
+
+runProxy1 port   = do
   let proxyHints = defaultHints { addrSocketType = Stream, addrFlags = [AI_PASSIVE] }
   proxyAI:_ <- getAddrInfo  -- 此函数返回的AddrInfo值包含可以直接传递给connect或bind的SockAddr值
                         (Just proxyHints) -- 首选套接字类型或协议
@@ -185,21 +175,19 @@ proxySocket clientSock  clientAddrs = do
 
         connect serverSock serverAddr
 
+        --runProxySettingsSocket defaultProxySettings serverSock
+
         forkFinally (forwardDataToServer clientSock serverSock  msg serverAddr) (\_ -> close clientSock >> close serverSock)
 
         forkFinally (forwardDataToClient serverSock clientSock clientAddrs) (\_ -> close clientSock >> close serverSock)
   
         return ()
 
-loopPack :: Clock -> IO ()
-loopPack clo = do
-  a <- getTime clo
-  print(a)
-main :: IO ()
 
+main :: IO ()
 main = do
 
-  forkFinally (asyncRepeatedly' 0.03 Realtime  (loopPack  Realtime)) (\_ -> print("打印268632325包的线程结束"))
+  --forkFinally (asyncRepeatedly' 0.03 Realtime  (loopPack  Realtime)) (\_ -> print("打印268632325包的线程结束"))
   --cmdArgs <- getArgs
 
-  runProxy "3000"  
+  runProxy1 "3000"  

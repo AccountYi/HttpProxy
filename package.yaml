@@ -22,16 +22,18 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - classy-prelude
-- network
+- network <= 3.1.1.0
 - bytestring
 - unix >=0.3.7.3
 - dns >= 4.0.0
 - exceptions >= 0.10.2
 - iproute >= 1.7.7
 - base-compat >= 0.10.5
+- http-proxy <= 0.1.1.0
+- wai <= 3.2.2
 
-- fixed-timestep == 0.2.0.0
-- clock == 0.7.2
+
+
 default-extensions:
 - NoImplicitPrelude
 - OverloadedStrings  

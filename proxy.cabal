@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c39fe05f9db96393450d0235dcbf2a3af3e0165c180d7a32d064f058799b1211
+-- hash: 9d75f320085ae73b53b77ff025d70f3baecf7c45ee4d038b494ca11f558bfdba
 
 name:           proxy
 version:        0.1.0.0
@@ -39,13 +39,13 @@ library
     , base-compat >=0.10.5
     , bytestring
     , classy-prelude
-    , clock ==0.7.2
     , dns >=4.0.0
     , exceptions >=0.10.2
-    , fixed-timestep ==0.2.0.0
+    , http-proxy <=0.1.1.0
     , iproute >=1.7.7
-    , network
+    , network <=3.1.1.0
     , unix >=0.3.7.3
+    , wai <=3.2.2
   default-language: Haskell2010
 
 executable proxy-exe
@@ -61,14 +61,14 @@ executable proxy-exe
     , base-compat >=0.10.5
     , bytestring
     , classy-prelude
-    , clock ==0.7.2
     , dns >=4.0.0
     , exceptions >=0.10.2
-    , fixed-timestep ==0.2.0.0
+    , http-proxy <=0.1.1.0
     , iproute >=1.7.7
-    , network
+    , network <=3.1.1.0
     , proxy
     , unix >=0.3.7.3
+    , wai <=3.2.2
   default-language: Haskell2010
 
 test-suite proxy-test
@@ -85,12 +85,12 @@ test-suite proxy-test
     , base-compat >=0.10.5
     , bytestring
     , classy-prelude
-    , clock ==0.7.2
     , dns >=4.0.0
     , exceptions >=0.10.2
-    , fixed-timestep ==0.2.0.0
+    , http-proxy <=0.1.1.0
     , iproute >=1.7.7
-    , network
+    , network <=3.1.1.0
     , proxy
     , unix >=0.3.7.3
+    , wai <=3.2.2
   default-language: Haskell2010
